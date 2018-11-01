@@ -1,13 +1,16 @@
 #include <ESP8266WiFi.h>
+#include <FirebaseArduino.h>
 
-
+// Set these to run example.
+#define FIREBASE_HOST "project-f4543.firebaseio.com"
+#define FIREBASE_AUTH "AnVa19cejYMUMDzYEjaw8wJs4PHvVMlF8DZIgLPM"
 // Config connect WiFi
 #define WIFI_SSID "MastreEWTC_2.4G"
 #define WIFI_PASSWORD "12345abcde"
 
+int i = 0;
 
 void setup() {
-  
   Serial.begin(9600);
 
   WiFi.mode(WIFI_STA);
@@ -23,9 +26,31 @@ void setup() {
   Serial.print("connected: ");
   Serial.println(WiFi.localIP());
 
+  Firebase.begin(FIREBASE_HOST, FIREBASE_AUTH);
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
 
+//  For Humidity
+  Firebase.setInt("Humidity", i);
+  if (Firebase.failed()) {
+    Serial.print("set /Humidity failed:");
+    Serial.println(Firebase.error());
+    return;
+  }
+  Serial.print("set /Humidity to ");
+  Serial.println(Firebase.getInt("Humidity"));
+
+//  For Temp
+  Firebase.setInt("Temp", i);
+  if (Firebase.failed()) {
+    Serial.print("set /Temp failed:");
+    Serial.println(Firebase.error());
+    return;
+  }
+  Serial.print("set /Temp to ");
+  Serial.println(Firebase.getInt("Temp"));
+
+  i++;
+  delay(500);
 }
