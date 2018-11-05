@@ -1,20 +1,34 @@
+//Library Connected Wifi
 #include <ESP8266WiFi.h>
+
+//Library Connected Firebase
 #include <FirebaseArduino.h>
 
-// Set these to run example.
+//Library Connected DHT
+#include <DHT.h>
+
+// Config Firebase Token
 #define FIREBASE_HOST "project-f4543.firebaseio.com"
 #define FIREBASE_AUTH "AnVa19cejYMUMDzYEjaw8wJs4PHvVMlF8DZIgLPM"
-// Config connect WiFi
+
+// Config Connected Router WiFi
 #define WIFI_SSID "MastreEWTC_2.4G"
 #define WIFI_PASSWORD "12345abcde"
 
-int i = 0;
+//About DHT11
+#define DHTTYPE DHT11 //Define type of sensor
+#define DHTPIN D1     //Define connected pin
+
+DHT dht(DHTPIN, DHTTYPE, 15); //Initial DHT sensor
+
+
+
 
 void setup() {
   Serial.begin(9600);
 
+// connect to wifi.
   WiFi.mode(WIFI_STA);
-  // connect to wifi.
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   Serial.print("connecting");
 
@@ -25,14 +39,28 @@ void setup() {
   Serial.println();
   Serial.print("connected: ");
   Serial.println(WiFi.localIP());
-
+  
+//Start Connected Firebase
   Firebase.begin(FIREBASE_HOST, FIREBASE_AUTH);
-}
+  
+//Start DHT sensor operation
+  dht.begin();            
+  
+} //Setting
 
 void loop() {
 
-//  For Humidity
-  Firebase.setInt("Humidity", i);
+//Calculate Humidity and Temp
+  float humid = dht.readHumidity();     // Read humidity data
+  float temp = dht.readTemperature();   // Read temperature data
+  Serial.print("Humidity = ");       // Send string to serial port.
+  Serial.print(humid);            // Send analog value to serial port.
+  Serial.print(" Temperature = ");       // Send string to serial port.
+  Serial.println(temp);            // Send analog value to serial port.
+  delay(500);                          // Delay 1 second before restart
+
+//  For Firebase Receive Humidity
+  Firebase.setInt("Humidity", humid);
   if (Firebase.failed()) {
     Serial.print("set /Humidity failed:");
     Serial.println(Firebase.error());
@@ -41,8 +69,8 @@ void loop() {
   Serial.print("set /Humidity to ");
   Serial.println(Firebase.getInt("Humidity"));
 
-//  For Temp
-  Firebase.setInt("Temp", i);
+//  For Firebase Receive Temperature
+  Firebase.setInt("Temp", temp);
   if (Firebase.failed()) {
     Serial.print("set /Temp failed:");
     Serial.println(Firebase.error());
@@ -51,6 +79,6 @@ void loop() {
   Serial.print("set /Temp to ");
   Serial.println(Firebase.getInt("Temp"));
 
-  i++;
+
   delay(500);
 }
